@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carré Rush</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+</style>
+  <link rel="stylesheet" href="la.css">
+</head>
+<body>
+<main>
+  <div class="top">
+    <h1><i></i>Carré Rush</h1>
+    <button class="mute" id="muteBtn" type="button" aria-pressed="false">Son activé</button>
+  </div>
+ 
+  <div class="stats" aria-live="off">
+    <div class="stat" id="score"><span>Score</span><b id="vScore">0</b></div>
+    <div class="stat"><span>Temps</span><b id="vTime">30</b></div>
+    <div class="stat"><span>Série</span><b id="vCombo">x1</b></div>
+    <div class="stat"><span>Record</span><b id="vBest">0</b></div>
+  </div>
+  <div class="timebar"><div id="bar"></div></div>
+  <div class="xp" id="xpRow">
+    <b id="xpLevel">Niv. 1</b>
+    <div class="xpbar"><div id="xpFill"></div></div>
+    <span id="xpText">0 / 100 XP</span>
+  </div>
+  <p class="next-unlock" id="nextUnlock"></p>
+  <p class="goal" id="letterGoal" hidden></p>
+ 
+  <div class="keys" id="keysPanel">
+    <div class="keys-row">
+      <p class="keys-msg" id="keyMsg" aria-live="polite">Une lettre s'allumera pendant la partie</p>
+      <div class="keycaps" role="group" aria-label="Touches du clavier">
+        <button class="keycap" type="button" data-key="z">Z</button>
+        <button class="keycap" type="button" data-key="q">Q</button>
+        <button class="keycap" type="button" data-key="s">S</button>
+        <button class="keycap" type="button" data-key="d">D</button>
+      </div>
+    </div>
+    <div class="keywin"><div id="keyBar"></div></div>
+  </div>
+ 
+  <div class="play">
+    <div class="stage"><div class="board" id="board"></div></div>
+    <aside class="lever" id="leverPanel">
+      <div class="lever-val" id="leverVal">5</div>
+      <div class="lever-body" id="leverBody" role="slider" aria-readonly="true" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="10" aria-valuenow="5" aria-label="Levier de 0 à 10, réglé avec la molette de la souris sur le plateau de jeu">
+        <div class="lever-slot"></div>
+        <div class="ticks" id="ticks" aria-hidden="true"></div>
+        <div class="lever-handle" id="leverHandle"></div>
+      </div>
+      <p class="keys-msg lever-msg" id="leverMsg" aria-live="polite">Molette de la souris</p>
+      <div class="keywin"><div id="leverBar"></div></div>
+    </aside>
+    <div class="overlay" id="overlay">
+      <h2 id="ovTitle">Appuie sur les carrés</h2>
+      <div class="big" id="ovScore" hidden>0</div>
+      <p id="ovText">30 secondes pour marquer. Chaque point devient de l'XP, qui débloque peu à peu des carrés spéciaux, les lettres, le levier, le personnage, les rafales et les modes de difficulté.</p>
+      <p id="top5" hidden></p>
+      <div class="claim" id="claim" hidden>
+        <input id="claimInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Lettres trouvées">
+        <div class="row">
+          <button class="btn" id="claimOk" type="button">Valider</button>
+          <button class="btn ghost" id="claimSkip" type="button">Passer</button>
+        </div>
+        <p id="claimMsg" aria-live="polite"></p>
+      </div>
+      <div class="legend" id="ovLegend">
+        <span><i style="background:var(--coral)"></i>+1</span>
+        <span id="legGold"><i style="background:var(--amber)"></i>+5</span>
+        <span id="legClock"><i style="background:var(--mint);border-radius:50%"></i>+3 s de temps</span>
+        <span id="legBomb"><i style="background:#120a14;border-radius:50%;box-shadow:inset 0 0 0 3px var(--amber)"></i>bombe : vide la grille</span>
+        <span id="legArmor"><i style="background:#cfd6ff;box-shadow:inset 0 0 0 3px var(--sky)"></i>2 clics +3</span>
+        <span id="legTrap"><i style="background:repeating-linear-gradient(45deg,#3a1230 0 3px,#5c1a45 3px 6px);box-shadow:inset 0 0 0 2px var(--coral)"></i>−3</span>
+      </div>
+      <div class="modes" id="modes" role="group" aria-label="Difficulté">
+        <button class="mode" type="button" data-mode="facile" aria-pressed="false"><span class="mn">Facile</span><span class="ml"></span></button>
+        <button class="mode" type="button" data-mode="normale" aria-pressed="true"><span class="mn">Normale</span><span class="ml"></span></button>
+        <button class="mode" type="button" data-mode="difficile" aria-pressed="false"><span class="mn">Difficile</span><span class="ml"></span></button>
+      </div>
+      <button class="btn" id="startBtn" type="button">Jouer</button>
+    </div>
+  </div>
+  <section class="runner" id="runner" hidden aria-live="polite">
+    <div class="keys-row">
+      <p class="keys-msg" id="runMsg">Un personnage apparaît !</p>
+      <button class="jumpbtn" id="jumpBtn" type="button">Sauter</button>
+    </div>
+    <canvas id="runCanvas" width="720" height="132" role="img" aria-label="Un personnage qui saute par-dessus des obstacles"></canvas>
+    <div class="keywin"><div id="runBar"></div></div>
+  </section>
+ 
+  <div class="sens">
+    <span id="sensLabel">Sensibilité de la molette</span>
+    <div class="seg" role="group" aria-labelledby="sensLabel">
+      <button class="sbtn" type="button" data-sens="basse" aria-pressed="false">Basse</button>
+      <button class="sbtn" type="button" data-sens="normale" aria-pressed="true">Normale</button>
+      <button class="sbtn" type="button" data-sens="haute" aria-pressed="false">Haute</button>
+    </div>
+  </div>
+  <p class="hint">Cliquer à côté d'un carré remet ta série à zéro, et coûte 1 point en difficile. Les carrés bleus à bordure épaisse demandent 2 clics. En normale et difficile, les carrés arrivent parfois en rafale. Un rond vert « +3s » ajoute 3 secondes à ton temps. Un rond noir « ! » est une bombe : il vide la grille et te rapporte les points des carrés qu'il emporte (sauf les pièges, qui disparaissent sans te coûter). Certains carrés ressemblent aux autres mais révèlent une lettre quand tu cliques dessus : retiens-la. Trouve-en au moins 3 en facile (+50 points), 5 en normale (+100) ou 10 en difficile (+500) dans la même partie pour gagner un bonus. À la fin de la partie, tu dois retaper les lettres que tu as trouvées, jusqu'à 3 en facile, 6 en normale et 11 en difficile (dans n'importe quel ordre) pour toucher le bonus : tu as 2 essais. Le bouton en haut coupe les sons. Une lettre bien pressée rapporte 10 points, une lettre ratée en fait perdre 5. À un moment aléatoire, le levier te demande une valeur : amène-le dessus à temps avec la molette de la souris, où que le curseur soit sur le plateau de jeu (il ne répond à rien d'autre). Règle la sensibilité de la molette juste au-dessus si elle va trop vite. Au début de la partie, il y a environ 15 % de chances par seconde qu'une nouvelle barre apparaisse sous le plateau avec un personnage : appuie sur Espace pour lui faire sauter les obstacles pendant 20 secondes et gagner un gros bonus pour multiplier tous tes gains par 5. Le record est gardé séparément pour chaque mode. Les carrés rayés (normale et difficile) font perdre des points.</p>
+  <div class="sens">
+    <span id="skinLabel">Thème</span>
+    <div class="seg" role="group" aria-labelledby="skinLabel">
+      <button class="sbtn skin" type="button" data-skin="classique" aria-pressed="true">Classique</button>
+      <button class="sbtn skin" type="button" data-skin="neon" aria-pressed="false">Néon<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="foret" aria-pressed="false">Forêt<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="braise" aria-pressed="false">Braise<span class="sl"></span></button>
+    </div>
+  </div>
+  <button class="reset" id="resetBtn" type="button">Tout redémarrer</button>
+  <p class="code" title="Code">311314F12</p>
+</main>
+ 
+
+  <script src="le.js"></script>
+</body>
+</html>
