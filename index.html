@@ -10,6 +10,19 @@
 
 <style>
 html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+
+/* Nouveaux carrés */
+.sq.on.star{background:#ffc233;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.sq.on.freeze{background:#9fe7ff;border-radius:50%;box-shadow:inset 0 0 0 4px #e8fbff}
+#board.frozen{box-shadow:0 0 0 3px #9fe7ff,0 0 24px rgba(159,231,255,.45);border-radius:12px}
+
+/* Succès */
+.ach{background:var(--panel,#1c2040);border-radius:10px;padding:12px;margin-top:12px}
+.ach h2{margin:0 0 6px;font-size:.95rem}
+.ach p{margin:0 0 8px;font-size:.78rem;font-weight:700;opacity:.75}
+.ach ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px}
+.ach li{font-size:.82rem;font-weight:700;opacity:.55}
+.ach li.done{opacity:1;color:var(--mint,#3ddbb0)}
 </style>
   <link rel="stylesheet" href="la.css">
 </head>
@@ -19,7 +32,7 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
     <h1><i></i>Carré Rush</h1>
     <button class="mute" id="muteBtn" type="button" aria-pressed="false">Son activé</button>
   </div>
- 
+
   <div class="stats" aria-live="off">
     <div class="stat" id="score"><span>Score</span><b id="vScore">0</b></div>
     <div class="stat"><span>Temps</span><b id="vTime">30</b></div>
@@ -34,7 +47,7 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
   </div>
   <p class="next-unlock" id="nextUnlock"></p>
   <p class="goal" id="letterGoal" hidden></p>
- 
+
   <div class="keys" id="keysPanel">
     <div class="keys-row">
       <p class="keys-msg" id="keyMsg" aria-live="polite">Une lettre s'allumera pendant la partie</p>
@@ -47,7 +60,7 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
     </div>
     <div class="keywin"><div id="keyBar"></div></div>
   </div>
- 
+
   <div class="play">
     <div class="stage"><div class="board" id="board"></div></div>
     <aside class="lever" id="leverPanel">
@@ -78,6 +91,8 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
         <span id="legGold"><i style="background:var(--amber)"></i>+5</span>
         <span id="legClock"><i style="background:var(--mint);border-radius:50%"></i>+3 s de temps</span>
         <span id="legBomb"><i style="background:#120a14;border-radius:50%;box-shadow:inset 0 0 0 3px var(--amber)"></i>bombe : vide la grille</span>
+        <span id="legStar"><i style="background:#ffc233;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)"></i>étoile : série +5</span>
+        <span id="legFreeze"><i style="background:#9fe7ff;border-radius:50%;box-shadow:inset 0 0 0 3px #e8fbff"></i>gel : ralentit 5 s</span>
         <span id="legArmor"><i style="background:#cfd6ff;box-shadow:inset 0 0 0 3px var(--sky)"></i>2 clics +3</span>
         <span id="legTrap"><i style="background:repeating-linear-gradient(45deg,#3a1230 0 3px,#5c1a45 3px 6px);box-shadow:inset 0 0 0 2px var(--coral)"></i>−3</span>
       </div>
@@ -97,7 +112,7 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
     <canvas id="runCanvas" width="720" height="132" role="img" aria-label="Un personnage qui saute par-dessus des obstacles"></canvas>
     <div class="keywin"><div id="runBar"></div></div>
   </section>
- 
+
   <div class="sens">
     <span id="sensLabel">Sensibilité de la molette</span>
     <div class="seg" role="group" aria-labelledby="sensLabel">
@@ -106,7 +121,8 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
       <button class="sbtn" type="button" data-sens="haute" aria-pressed="false">Haute</button>
     </div>
   </div>
-  <p class="hint">Cliquer à côté d'un carré remet ta série à zéro, et coûte 1 point en difficile. Les carrés bleus à bordure épaisse demandent 2 clics. En normale et difficile, les carrés arrivent parfois en rafale. Un rond vert « +3s » ajoute 3 secondes à ton temps. Un rond noir « ! » est une bombe : il vide la grille et te rapporte les points des carrés qu'il emporte (sauf les pièges, qui disparaissent sans te coûter). Certains carrés ressemblent aux autres mais révèlent une lettre quand tu cliques dessus : retiens-la. Trouve-en au moins 3 en facile (+50 points), 5 en normale (+100) ou 10 en difficile (+500) dans la même partie pour gagner un bonus. À la fin de la partie, tu dois retaper les lettres que tu as trouvées, jusqu'à 3 en facile, 6 en normale et 11 en difficile (dans n'importe quel ordre) pour toucher le bonus : tu as 2 essais. Le bouton en haut coupe les sons. Une lettre bien pressée rapporte 10 points, une lettre ratée en fait perdre 5. À un moment aléatoire, le levier te demande une valeur : amène-le dessus à temps avec la molette de la souris, où que le curseur soit sur le plateau de jeu (il ne répond à rien d'autre). Règle la sensibilité de la molette juste au-dessus si elle va trop vite. Au début de la partie, il y a environ 15 % de chances par seconde qu'une nouvelle barre apparaisse sous le plateau avec un personnage : appuie sur Espace pour lui faire sauter les obstacles pendant 20 secondes et gagner un gros bonus pour multiplier tous tes gains par 5. Le record est gardé séparément pour chaque mode. Les carrés rayés (normale et difficile) font perdre des points.</p>
+
+  <p class="hint">Cliquer à côté d'un carré remet ta série à zéro, et coûte 1 point en difficile. Les carrés bleus à bordure épaisse demandent 2 clics. En normale et difficile, les carrés arrivent parfois en rafale. Un rond vert « +3s » ajoute 3 secondes à ton temps. Un rond noir « ! » est une bombe : il vide la grille et te rapporte les points des carrés qu'il emporte (sauf les pièges, qui disparaissent sans te coûter). Certains carrés ressemblent aux autres mais révèlent une lettre quand tu cliques dessus : retiens-la. Trouve-en au moins 3 en facile (+50 points), 5 en normale (+100) ou 10 en difficile (+500) dans la même partie pour gagner un bonus. À la fin de la partie, tu dois retaper les lettres que tu as trouvées, jusqu'à 3 en facile, 6 en normale et 11 en difficile (dans n'importe quel ordre) pour toucher le bonus : tu as 2 essais. Le bouton en haut coupe les sons. Une lettre bien pressée rapporte 10 points, une lettre ratée en fait perdre 5. À un moment aléatoire, le levier te demande une valeur : amène-le dessus à temps avec la molette de la souris, où que le curseur soit sur le plateau de jeu (il ne répond à rien d'autre). Si tu réussis, tous tes gains sont multipliés par 5 pendant quelques secondes. Règle la sensibilité de la molette juste au-dessus si elle va trop vite. Au début de la partie, il y a environ 15 % de chances par seconde qu'un personnage apparaisse dans une barre sous le plateau : appuie sur Espace pour lui faire sauter les obstacles pendant 20 secondes et gagner un gros bonus de points. Une étoile jaune fait monter ta série de 5 d'un coup. Un rond bleu glacé ralentit l'arrivée des carrés pendant 5 secondes. À la fin de chaque partie, ta précision est affichée, et des succès se débloquent en bas de la page. Le record est gardé séparément pour chaque mode. Les carrés rayés (normale et difficile) font perdre des points.</p>
   <div class="sens">
     <span id="skinLabel">Thème</span>
     <div class="seg" role="group" aria-labelledby="skinLabel">
@@ -116,12 +132,15 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
       <button class="sbtn skin" type="button" data-skin="braise" aria-pressed="false">Braise<span class="sl"></span></button>
     </div>
   </div>
+  <section class="ach" aria-label="Succès">
+    <h2>Succès</h2>
+    <p id="statsLine"></p>
+    <ul id="achList"></ul>
+  </section>
   <button class="reset" id="resetBtn" type="button">Tout redémarrer</button>
   <p class="code" title="Code">311314F12</p>
 </main>
- 
 
   <script src="le.js"></script>
-  <script src="classement.js"></script>
 </body>
 </html>
