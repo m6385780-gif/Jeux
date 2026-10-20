@@ -10,36 +10,28 @@
 
 <style>
 html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
-
-/* Nouveaux carrés */
-.sq.on.star{background:#ffc233;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
-.sq.on.freeze{background:#9fe7ff;border-radius:50%;box-shadow:inset 0 0 0 4px #e8fbff}
-#board.frozen{box-shadow:0 0 0 3px #9fe7ff,0 0 24px rgba(159,231,255,.45);border-radius:12px}
-
-/* Succès */
-.ach{background:var(--panel,#1c2040);border-radius:10px;padding:12px;margin-top:12px}
-.ach h2{margin:0 0 6px;font-size:.95rem}
-.ach p{margin:0 0 8px;font-size:.78rem;font-weight:700;opacity:.75}
-.ach ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px}
-.ach li{font-size:.82rem;font-weight:700;opacity:.55}
-.ach li.done{opacity:1;color:var(--mint,#3ddbb0)}
 </style>
   <link rel="stylesheet" href="la.css">
 </head>
 <body>
 <main>
+
+  <!-- titre et bouton du son -->
   <div class="top">
     <h1><i></i>Carré Rush</h1>
     <button class="mute" id="muteBtn" type="button" aria-pressed="false">Son activé</button>
   </div>
 
+  <!-- score, temps, série, record -->
   <div class="stats" aria-live="off">
     <div class="stat" id="score"><span>Score</span><b id="vScore">0</b></div>
     <div class="stat"><span>Temps</span><b id="vTime">30</b></div>
-    <div class="stat"><span>Série</span><b id="vCombo">x1</b></div>
+    <div class="stat"><span id="lCombo">Série</span><b id="vCombo">x1</b></div>
     <div class="stat"><span>Record</span><b id="vBest">0</b></div>
   </div>
   <div class="timebar"><div id="bar"></div></div>
+
+  <!-- niveau et xp -->
   <div class="xp" id="xpRow">
     <b id="xpLevel">Niv. 1</b>
     <div class="xpbar"><div id="xpFill"></div></div>
@@ -48,6 +40,7 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
   <p class="next-unlock" id="nextUnlock"></p>
   <p class="goal" id="letterGoal" hidden></p>
 
+  <!-- les touches Z Q S D -->
   <div class="keys" id="keysPanel">
     <div class="keys-row">
       <p class="keys-msg" id="keyMsg" aria-live="polite">Une lettre s'allumera pendant la partie</p>
@@ -61,16 +54,28 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
     <div class="keywin"><div id="keyBar"></div></div>
   </div>
 
+  <!-- le combat de boss -->
+  <section class="bosspanel" id="bossPanel" hidden aria-live="polite">
+    <div class="pantitle" id="panBar" hidden><b id="panStep">Panthéon 1/6</b><span id="panTime">00:00.0</span></div>
+    <div class="keys-row">
+      <p class="keys-msg go" id="bossMsg">Boss</p>
+      <b class="bosshp" id="bossHp">0 / 0</b>
+    </div>
+    <div class="bosshpbar"><div id="bossHpFill"></div></div>
+    <button class="bossquit" id="bossQuit" type="button">Abandonner</button>
+  </section>
+
+  <!-- le plateau, le levier et l'écran par-dessus -->
   <div class="play">
     <div class="stage"><div class="board" id="board"></div></div>
     <aside class="lever" id="leverPanel">
       <div class="lever-val" id="leverVal">5</div>
-      <div class="lever-body" id="leverBody" role="slider" aria-readonly="true" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="10" aria-valuenow="5" aria-label="Levier de 0 à 10, réglé avec la molette de la souris sur le plateau de jeu">
+      <div class="lever-body" id="leverBody" role="slider" aria-readonly="true" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="10" aria-valuenow="5" aria-label="Levier de 0 à 10, réglé avec la molette de la souris sur le plateau de jeu, ou en le faisant glisser">
         <div class="lever-slot"></div>
         <div class="ticks" id="ticks" aria-hidden="true"></div>
         <div class="lever-handle" id="leverHandle"></div>
       </div>
-      <p class="keys-msg lever-msg" id="leverMsg" aria-live="polite">Molette de la souris</p>
+      <p class="keys-msg lever-msg" id="leverMsg" aria-live="polite">Molette ou glisser</p>
       <div class="keywin"><div id="leverBar"></div></div>
     </aside>
     <div class="overlay" id="overlay">
@@ -93,6 +98,12 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
         <span id="legBomb"><i style="background:#120a14;border-radius:50%;box-shadow:inset 0 0 0 3px var(--amber)"></i>bombe : vide la grille</span>
         <span id="legStar"><i style="background:#ffc233;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)"></i>étoile : série +5</span>
         <span id="legFreeze"><i style="background:#9fe7ff;border-radius:50%;box-shadow:inset 0 0 0 3px #e8fbff"></i>gel : ralentit 5 s</span>
+        <span id="legDiamond"><i style="background:#b9f2ff;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)"></i>diamant : +10</span>
+        <span id="legMagnet"><i style="background:var(--sky);border-radius:50%"></i>aimant : gains ×2 pendant 6 s</span>
+        <span id="legMystery"><i style="background:#c77dff;border-radius:4px"></i>? : surprise</span>
+        <span id="legHop"><i style="background:#ff8fab;clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%)"></i>saute : +6</span>
+        <span id="legShield"><i style="background:linear-gradient(#7dd3fc,#a5b4fc);clip-path:polygon(50% 0,100% 15%,100% 55%,50% 100%,0 55%,0 15%)"></i>bouclier : annule 1 pénalité</span>
+        <span id="legCrown"><i style="background:linear-gradient(#ffe066,#ff9f1c);clip-path:polygon(0 85%,0 25%,25% 55%,50% 8%,75% 55%,100% 25%,100% 85%)"></i>couronne : +25</span>
         <span id="legArmor"><i style="background:#cfd6ff;box-shadow:inset 0 0 0 3px var(--sky)"></i>2 clics +3</span>
         <span id="legTrap"><i style="background:repeating-linear-gradient(45deg,#3a1230 0 3px,#5c1a45 3px 6px);box-shadow:inset 0 0 0 2px var(--coral)"></i>−3</span>
       </div>
@@ -102,8 +113,14 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
         <button class="mode" type="button" data-mode="difficile" aria-pressed="false"><span class="mn">Difficile</span><span class="ml"></span></button>
       </div>
       <button class="btn" id="startBtn" type="button">Jouer</button>
+      <button class="btn ghost" id="dailyBtn" type="button">Défi du jour</button>
+      <p id="dailyInfo"></p>
+      <button class="btn ghost" id="bossBtn" type="button">Combat de boss</button>
+      <p id="bossInfo"></p>
     </div>
   </div>
+
+  <!-- le personnage qui saute -->
   <section class="runner" id="runner" hidden aria-live="polite">
     <div class="keys-row">
       <p class="keys-msg" id="runMsg">Un personnage apparaît !</p>
@@ -113,6 +130,19 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
     <div class="keywin"><div id="runBar"></div></div>
   </section>
 
+  <!-- le défi mémoire -->
+  <section class="memory" id="memPanel" hidden aria-live="polite">
+    <p class="keys-msg" id="memMsg">Retiens la suite de couleurs…</p>
+    <div class="memkeys" role="group" aria-label="Suite de couleurs">
+      <button class="membtn" type="button" data-c="0" aria-label="Corail"></button>
+      <button class="membtn" type="button" data-c="1" aria-label="Menthe"></button>
+      <button class="membtn" type="button" data-c="2" aria-label="Bleu"></button>
+      <button class="membtn" type="button" data-c="3" aria-label="Ambre"></button>
+    </div>
+    <div class="keywin"><div id="memBar"></div></div>
+  </section>
+
+  <!-- sensibilité de la molette -->
   <div class="sens">
     <span id="sensLabel">Sensibilité de la molette</span>
     <div class="seg" role="group" aria-labelledby="sensLabel">
@@ -122,23 +152,50 @@ html{background:#12152b}body{margin:0}img{max-width:100%}[hidden]{display:none!i
     </div>
   </div>
 
-  <p class="hint">Cliquer à côté d'un carré remet ta série à zéro, et coûte 1 point en difficile. Les carrés bleus à bordure épaisse demandent 2 clics. En normale et difficile, les carrés arrivent parfois en rafale. Un rond vert « +3s » ajoute 3 secondes à ton temps. Un rond noir « ! » est une bombe : il vide la grille et te rapporte les points des carrés qu'il emporte (sauf les pièges, qui disparaissent sans te coûter). Certains carrés ressemblent aux autres mais révèlent une lettre quand tu cliques dessus : retiens-la. Trouve-en au moins 3 en facile (+50 points), 5 en normale (+100) ou 10 en difficile (+500) dans la même partie pour gagner un bonus. À la fin de la partie, tu dois retaper les lettres que tu as trouvées, jusqu'à 3 en facile, 6 en normale et 11 en difficile (dans n'importe quel ordre) pour toucher le bonus : tu as 2 essais. Le bouton en haut coupe les sons. Une lettre bien pressée rapporte 10 points, une lettre ratée en fait perdre 5. À un moment aléatoire, le levier te demande une valeur : amène-le dessus à temps avec la molette de la souris, où que le curseur soit sur le plateau de jeu (il ne répond à rien d'autre). Si tu réussis, tous tes gains sont multipliés par 5 pendant quelques secondes. Règle la sensibilité de la molette juste au-dessus si elle va trop vite. Au début de la partie, il y a environ 15 % de chances par seconde qu'un personnage apparaisse dans une barre sous le plateau : appuie sur Espace pour lui faire sauter les obstacles pendant 20 secondes et gagner un gros bonus de points. Une étoile jaune fait monter ta série de 5 d'un coup. Un rond bleu glacé ralentit l'arrivée des carrés pendant 5 secondes. À la fin de chaque partie, ta précision est affichée, et des succès se débloquent en bas de la page. Le record est gardé séparément pour chaque mode. Les carrés rayés (normale et difficile) font perdre des points.</p>
+  <!-- le Panthéon : les 6 boss à la suite -->
+  <section class="panbox" id="panBox" aria-label="Panthéon">
+    <div class="panbox-text">
+      <b>Panthéon</b>
+      <p id="panInfo"></p>
+    </div>
+    <button class="btn panbtn" id="panBtn" type="button" hidden>Lancer</button>
+  </section>
+
+  <!-- les règles (repliables) -->
+  <details class="rules">
+    <summary>Règles du jeu</summary>
+    <p class="hint">Cliquer à côté d'un carré remet ta série à zéro, et coûte 1 point en difficile. Les carrés bleus à bordure épaisse demandent 2 clics. En normale et difficile, les carrés arrivent parfois en rafale. Un rond vert « +3s » ajoute 3 secondes à ton temps. Un rond noir « ! » est une bombe : il vide la grille et te rapporte les points des carrés qu'il emporte (sauf les pièges, qui disparaissent sans te coûter). Certains carrés ressemblent aux autres mais révèlent une lettre quand tu cliques dessus : retiens-la. Trouve-en au moins 3 en facile (+50 points), 5 en normale (+100) ou 10 en difficile (+500) dans la même partie pour gagner un bonus. À la fin de la partie, tu dois retaper les lettres que tu as trouvées, jusqu'à 3 en facile, 6 en normale et 11 en difficile (dans n'importe quel ordre) pour toucher le bonus : tu as 2 essais. Le bouton en haut coupe les sons. Une lettre bien pressée rapporte 10 points, une lettre ratée en fait perdre 5. À un moment aléatoire, le levier te demande une valeur : amène-le dessus à temps avec la molette de la souris, où que le curseur soit sur le plateau de jeu, ou en le faisant glisser avec le doigt ou la souris. Si tu réussis, tous tes gains sont multipliés par 5 pendant quelques secondes. Règle la sensibilité de la molette juste au-dessus si elle va trop vite. Au début de la partie, il y a environ 15 % de chances par seconde qu'un personnage apparaisse dans une barre sous le plateau : appuie sur Espace pour lui faire sauter les obstacles pendant 20 secondes et gagner un gros bonus de points. Une étoile jaune fait monter ta série de 5 d'un coup. Un rond bleu glacé ralentit l'arrivée des carrés pendant 5 secondes. Le défi du jour propose, pour le mode choisi, une partie avec le même tirage de carrés pour toute la journée, et garde ton meilleur score du jour à part. Un diamant clair rapporte 10 points mais disparaît vite. Un rond bleu « ×2 » double tous tes gains pendant 6 secondes. De temps en temps, un défi mémoire apparaît sous le plateau : retiens la suite de couleurs, puis clique-les dans le même ordre pour gagner un bonus (une erreur coûte 5 points). À la fin de chaque partie, ta précision est affichée, et des succès se débloquent en bas de la page. Le record est gardé séparément pour chaque mode. Les carrés rayés (normale et difficile) font perdre des points. Un carré violet « ? » cache une surprise : points, temps en plus, série, bouclier, ou (rarement) une petite pénalité. Un hexagone rose « » » saute une fois vers une autre case et rapporte 6 points. Un bouclier bleu annule ta prochaine pénalité (piège, clic raté, touche ratée, défi mémoire raté). Une couronne dorée, très rare, rapporte 25 points mais disparaît très vite. Aux niveaux élevés, tu commences la partie avec un bouclier et ta série peut monter jusqu'à ×5. Chaque niveau te rapproche aussi d'un nouveau titre de joueur, affiché sous la barre d'XP. Tous les 5 niveaux (5, 10, 15, 20…), un boss t'attend : clique sur le bouton « Combat de boss » de l'écran de départ. Le boss est un gros carré rouge avec ses points de vie ; chaque clic dessus lui en enlève un, mais il change de case sans cesse. Il n'y a aucune limite de temps : le temps affiché monte, c'est juste un chrono, et tu peux abandonner quand tu veux. Les pièges autour de lui le soignent de 2 PV, et dès le boss 3 des leurres sans numéro lui ressemblent. À la moitié de sa vie, il devient furieux : il bouge plus vite et pose plus de pièges. Chaque boss est plus coriace que le précédent. La première victoire donne beaucoup d'XP, les suivantes une petite prime. Chaque boss a sa propre mécanique : Carré Alpha se protège une apparition sur trois (le toucher le soigne de 1 PV), Dame Pique se soigne de 1 PV quand elle t'échappe, Baron Rouge saute ailleurs dès que tu le touches, Titan Noir devient invisible peu après être apparu, et Seigneur du Chaos se soigne par moments quand on le touche. Les boss suivants reprennent ces mécaniques dans le même ordre. Un sixième boss, l'Empereur Prisme, saute de plus en plus vite à mesure qu'il perd des PV. Une fois le Seigneur du Chaos battu, le Panthéon se débloque : tu enchaînes les 6 boss à la suite (2,5 s de pause entre deux), sans limite de temps par boss : seul le chrono total compte. Le bouton « Abandonner » arrête la série. Ton meilleur temps est gardé, et la première victoire donne +600 XP. Aux niveaux 17 à 20 : le gel dure 8 s (17), les horloges donnent +5 s (18), les étoiles font monter la série de 8 (19), et la série peut monter jusqu'à ×6 (20).</p>
+  </details>
+
+  <!-- choix du thème -->
   <div class="sens">
     <span id="skinLabel">Thème</span>
     <div class="seg" role="group" aria-labelledby="skinLabel">
       <button class="sbtn skin" type="button" data-skin="classique" aria-pressed="true">Classique</button>
       <button class="sbtn skin" type="button" data-skin="neon" aria-pressed="false">Néon<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="ocean" aria-pressed="false">Océan<span class="sl"></span></button>
       <button class="sbtn skin" type="button" data-skin="foret" aria-pressed="false">Forêt<span class="sl"></span></button>
       <button class="sbtn skin" type="button" data-skin="braise" aria-pressed="false">Braise<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="aurore" aria-pressed="false">Aurore<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="sakura" aria-pressed="false">Sakura<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="desert" aria-pressed="false">Désert<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="glace" aria-pressed="false">Glace<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="or" aria-pressed="false">Or<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="cosmos" aria-pressed="false">Cosmos<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="rubis" aria-pressed="false">Rubis<span class="sl"></span></button>
+      <button class="sbtn skin" type="button" data-skin="arcenciel" aria-pressed="false">Arc-en-ciel<span class="sl"></span></button>
     </div>
   </div>
+
+  <!-- les succès -->
   <section class="ach" aria-label="Succès">
     <h2>Succès</h2>
     <p id="statsLine"></p>
     <ul id="achList"></ul>
   </section>
+
   <button class="reset" id="resetBtn" type="button">Tout redémarrer</button>
-  <p class="code" title="Code">311314F12</p>
+  <p class="code" title="Code">311314F12 : 7129105E</p>
 </main>
 
   <script src="le.js"></script>
